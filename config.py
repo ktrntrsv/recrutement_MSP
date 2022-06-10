@@ -18,9 +18,9 @@ INDIVIDUAL_INTERVIEW_DB_ID = "e397cd52ab23448ca63bd703cddb61bd"
 TRAININGS_DB_ID = "3d7e64da3c0d4932bda78288d3f765e5"
 EXAMS_DB_ID = "5df8f2d398e945e5b542a8ba1d7a3073"
 
-loading_str = "16"
+loading_str = "17"
 table_alphabet = logic.get_column_names()
-first_date_row = table_alphabet.index("H")
+first_date_row_ind = table_alphabet.index("H")
 
 order_stages = (
     "gs_date",

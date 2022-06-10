@@ -53,7 +53,7 @@ def table_date_to_datetime_converter(table_date: str):
         return start, end
 
     except ValueError:
-        return None, None
+        return None
 
 
 def get_column_names() -> list:

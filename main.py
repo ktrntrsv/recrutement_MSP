@@ -52,8 +52,13 @@ def table_warning(func):
             raise Exception
         finally:
             t.write(warning_cell, [[""], [""]])
-            t.write(f"{config.first_date_row}{config.loading_str}:{last_row_char}{config.loading_str}",
-                    [[""] * (config.table_alphabet.index(last_row_char) - config.first_date_row + 1)])
+            print(f"{config.first_date_row_ind=}")
+            print(f"{config.table_alphabet.index(last_row_char)=}")
+
+            t.write(f"{config.table_alphabet[config.first_date_row_ind]}{config.loading_str}:"
+                    f"{last_row_char}{config.loading_str}",
+
+                    [[""] * (config.table_alphabet.index(last_row_char) - config.first_date_row_ind + 1)])
 
     return wrapper
 
@@ -64,7 +69,7 @@ def main(table):
 
     last_row_char = "G"
 
-    for char_ind in range(config.first_date_row, len(config.table_alphabet)):
+    for char_ind in range(config.first_date_row_ind, len(config.table_alphabet)):
         if (datetime.now() - end_date).days > 0:
             cell_date = f"{config.table_alphabet[char_ind]}2:{config.table_alphabet[char_ind]}2"
             table_data = table.read([cell_date])
