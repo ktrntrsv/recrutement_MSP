@@ -1,0 +1,11 @@
+/.test
+/.env
+/debug.log
+/dev.json
+/archive
+/notion/debug*
+/notion/dev.json
+/access_files
+/notion/__pycache__
+__pycache__/
+.idea/
