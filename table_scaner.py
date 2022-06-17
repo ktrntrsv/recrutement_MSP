@@ -15,11 +15,14 @@ class Table:
     def __init__(self):
         self.SCOPE = ["https://www.googleapis.com/auth/spreadsheets"]
         self.SPREADSHEET_ID = "1zEL9X-8R4IZ04OKdXxcA5CaTr5w4BeyyLbBDbBPKW6A"
-        self.credentials = self._refresh_token()
+        self.credentials = self._get_credentials()
         self.service = build("sheets", "v4", credentials=self.credentials)
         self.list_name = config.data_sheets_list_name
 
-    def _refresh_token(self) -> Credentials:
+    def _get_credentials(self) -> Credentials:
+        """
+        :return: credentials
+        """
         creds = None
 
         if os.path.exists("access_files/token.json"):
@@ -39,7 +42,9 @@ class Table:
 
     def read(self, range_sheets: list = None) -> list:
         """
-        :param range_sheets: list ["A14:A17", "B14:B19"]
+        Read info for range_sheets range.
+
+        :param range_sheets: list, ex: ["A14:A17", "B14:B19"]
         :return: values (list)
         """
         if not range_sheets:
@@ -61,7 +66,14 @@ class Table:
         except HttpError as err:
             logger.info(err)
 
-    def write(self, range_sheets: str, values: list):
+    def write(self, range_sheets: str, values: list) -> None:
+        """
+        Write value info to range_sheets.
+
+        :param range_sheets: str
+        :param values: list
+        :return: None
+        """
         range_sheets = self.list_name + range_sheets
         if not values:
             values = []
@@ -79,10 +91,8 @@ class Table:
         try:
             result = self.service.spreadsheets().values().batchUpdate(
                 spreadsheetId=self.SPREADSHEET_ID, body=body).execute()
-            # logger.debug(f"Values writed: {result}")
+            # logger.debug(f"Values written: {result}")
         except HttpError as err:
             logger.error(err)
-
-
 
 # data = [{'range': 'Actual!F2:G2', 'majorDimension': 'ROWS', 'values': [['25.04-1.01.22']]}]

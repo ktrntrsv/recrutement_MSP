@@ -1,6 +1,6 @@
 from collections import namedtuple
 from datetime import datetime, timedelta
-from pprint import pprint
+# from pprint import pprint
 
 import config
 from notion.notion_parser import NotionParser
@@ -8,16 +8,22 @@ from logger_file import logger
 
 
 class NotionParserRecrutement(NotionParser):
-    def __init__(self, start_day, end_day):
-        self.body = None
-        self.start_day = start_day
-        self.end_day = end_day
+    def __init__(self, start_day: datetime, end_day: datetime):
         super(NotionParserRecrutement, self).__init__()
-        self.body = self.get_week_filter()
+
+        self.start_day: datetime = start_day
+        self.end_day: datetime = end_day
+        self.body: dict = self.get_week_filter()
         self.params_tuple = namedtuple("params_tuple",
                                        ("fio", "gs_done", "pp_done", "is_done", "t_done", "ex_done", "shsv_done"))
 
-    def get_week_filter(self):
+    def get_week_filter(self) -> dict:
+        """
+        Create filter for request to Notino
+
+        :return: dict body: the body of request
+        """
+
         body = {
             "filter": {
                 "and": [
@@ -41,27 +47,23 @@ class NotionParserRecrutement(NotionParser):
         }
         return body
 
-    def second_filter(self, info):
+    def second_filter(self, info: list) -> list:  # TODO: TEST!
         """
-        There are two dates in "ГС: дата прихода" sometimes.
-        We should take only last of them.
+        Return list with only suitable by date of invitation candidates.
 
-        :param: info like
-        [{'ГС: дата прихода': ['2022-03-20'],
-        'ИС: результат': 'Прошел',
-        'ПП: результат': '❌ Не пройдена Junior ✅ Пройдена Middle ❌ Не пройдена Senior',
-        'Прошел ГС': True,
-        'Т: пройдены': True,
-        'ФИО': 'Блажиевский Артём Александрович',
-        'ШСВ: результат': 'Прошел',
-        'Э: прошёл?': True}, ...
-        {},
-        {}]
+        There are two and more dates in "ГС: дата приглашения" sometimes.
+        We should take only last of them.
+        The method takes info, takes the last date and leave only this one in "ГС: дата приглашения".
+        If the date not in required time range, func pop this candidate
+
+        :param: list info like
+                [{'ГС: дата приглашения': ['2022-03-20'], 'ИС: результат': 'Прошел',
+                'ФИО': 'Блажиевский Артём Александрович', ...} {},]
+        :return: list info (filtered)
         """
-        # logger.debug(info)
         ind_to_pop = []
         for i, prep in enumerate(info):
-            logger.debug(prep["ФИО"])
+            logger.debug(prep["ФИО"])  # sometimes ФИО is "", it's ok, do not pop candidate
             date = prep["ГС: дата приглашения"]
             for ind, day in enumerate(date):
                 date[ind] = datetime.fromisoformat(day)
@@ -70,22 +72,28 @@ class NotionParserRecrutement(NotionParser):
             prep["ГС: дата приглашения"] = [date]
             date = datetime.strptime(date, "%Y-%m-%d")  # from string to datetime
 
-            if (date - self.start_day).days > 7:
+            if (date - self.end_day).days > 0 or (self.start_day - date).days > 0:
                 ind_to_pop.append(i)
                 logger.info(f'{prep["ФИО"]}, {date=}')
+
             # prep.pop("ГС: дата прихода", None)
         for ind in ind_to_pop[::-1]:
             info.pop(ind)
         return info
 
-    def get_fields_meaning(self):
+    def get_fields_meaning(self) -> any((list, None)):
         """
-        fields_list: list ["field_name 1", "field_name 2"...]
+        Get from self.db_info fields (which specified in config.field_names)
+        and process the data in two filters (second_filter and bool_treatment).
+
+        :return: list of dicts of candidates if there is something in self.db_info
+                 None if no info in the field,
         """
+
         if not self.db_info:
             logger.error(f"{self.db_info=}")
             return
-        result = [{} for i in range(len(self.db_info))]
+        result = [{} for _ in range(len(self.db_info))]
 
         for i in range(len(self.db_info)):
             for field in config.field_names.values():
@@ -95,9 +103,13 @@ class NotionParserRecrutement(NotionParser):
         result = self.bool_treatment(result)
         return result
 
-    def bool_treatment(self, info):
+    @staticmethod
+    def bool_treatment(info):
         """
-        convert properties to bool
+        Convert properties to bool.
+
+        :param: list[dict] info different means
+        :return: list[dict] info bool means
         """
 
         for prop in info:
@@ -136,12 +148,25 @@ class NotionParserRecrutement(NotionParser):
             else:
                 prop["ГС: дата приглашения"] = False
 
+            if prop["ГС: дата прихода"]:
+                prop["ГС: дата прихода"] = True
+            else:
+                prop["ГС: дата прихода"] = False
+
+            param = prop["Э: результат"]
+            if param:
+                prop["Э: пришёл"] = True
+                if param == "Пересдача":
+                    prop["Э: пришёл"] = False
+                    prop["Э: результат"] = False
+
         return info
 
-#
-# start = datetime(day=6, month=3, year=2022)
-# end = datetime(day=6, month=3, year=2022)
 
-# n = NotionParserRecrutement(start, end)
-# n.read_database(config.CANDIDATES_DB_ID)
-# print(n.get_fields_meaning())
+if __name__ == '__main__':
+    start = datetime(day=6, month=3, year=2022)
+    end = datetime(day=6, month=3, year=2022)
+
+    n = NotionParserRecrutement(start, end)
+    n.read_database(config.CANDIDATES_DB_ID)
+    print(n.get_fields_meaning())

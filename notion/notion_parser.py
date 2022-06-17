@@ -9,19 +9,29 @@ from json import dump
 class NotionParser:
 
     def __init__(self):
-        self.token = config.NOTION_BOT_TOKEN
-        self.headers = {
+        self.token: str = config.NOTION_BOT_TOKEN
+        self.headers: dict = {
             "Authorization": "Bearer " + self.token,
             "Content-Type": "application/json",
             "Notion-Version": "2021-05-13",
         }
         self.body = None
         self.db_info = None
+        # self.body should look sth like this
+        #
         # self.body = {"filter":
         #                  {"property": "Telegram ID", "number": {"equals": self.prep_id}},
         #              }
 
-    def read_database(self, database_id):
+    def read_database(self, database_id: str) -> None:
+        """
+        Read database and write data to self.db_info.
+        Self.db_info will be like
+        [{'object': 'page', <...> 'properties': {'Т1': {'id': '"=A9', 'type': 'relation', 'relation': [{......}]}}}]
+
+        :param str database_id: Notion database id
+        :return: None
+        """
         read_url = f"https://api.notion.com/v1/databases/{database_id}/query"
 
         res = request("POST", read_url, headers=self.headers, json=self.body)
@@ -37,12 +47,14 @@ class NotionParser:
             return
 
         # logger.debug(f"{response}")
-        with open("dev.json", "w") as f:
-            f.write(str(response["results"]))
+        # with open("dev.json", "w") as f:
+        #     f.write(str(response["results"]))
+
         self.db_info = response["results"]
+
         # print(self.db_info)
 
-    def find_field_meaning(self, index: int, field: str):
+    def find_field_meaning(self, index: int, field: str) -> any((None, str, int, float, list)):
         """
         Now method can parse
         1. Title
@@ -55,8 +67,15 @@ class NotionParser:
         4. Select
         5. Number
         6. Formula
-      """
+
+        :param int index:  index of a page (candidate) to find information about
+        :param str field:  name of a field in Notion database
+        :return: info from field or None
+        """
+
         info = self.db_info[index]["properties"]
+        # info = {'Т1': {'id': '"=A9', 'type': 'relation', 'relation': [{'id': '0c0382ab-dae0-4e2e-aefb-6929cf4ca3a0'}]}
+
         if not info:
             logger.debug("No data")
             return None
@@ -89,8 +108,6 @@ class NotionParser:
                         return rollup_content["formula"]["string"].strip()
 
             return None
-
-        # info = {'Т1': {'id': '"=A9', 'type': 'relation', 'relation': [{'id': '0c0382ab-dae0-4e2e-aefb-6929cf4ca3a0'}]}
 
         elif field_type == "relation":
             if info[field]["relation"] and len(info[field]["relation"]) > 0:
