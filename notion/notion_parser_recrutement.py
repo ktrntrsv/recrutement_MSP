@@ -1,6 +1,6 @@
 from collections import namedtuple
 from datetime import datetime, timedelta
-# from pprint import pprint
+from pprint import pprint
 
 import config
 from notion.notion_parser import NotionParser
@@ -13,18 +13,21 @@ class NotionParserRecrutement(NotionParser):
 
         self.start_day: datetime = start_day
         self.end_day: datetime = end_day
-        self.body: dict = self.get_week_filter()
+
+        self.body: dict = {}
+        self.get_week_filter()
+
         self.params_tuple = namedtuple("params_tuple",
                                        ("fio", "gs_done", "pp_done", "is_done", "t_done", "ex_done", "shsv_done"))
 
-    def get_week_filter(self) -> dict:
+    def get_week_filter(self) -> None:
         """
-        Create filter for request to Notino
-
-        :return: dict body: the body of request
+        Create filter for request to Notion
+        dict self.body: the body of request
+        :return: None
         """
 
-        body = {
+        self.body = {
             "filter": {
                 "and": [
                     {
@@ -45,7 +48,27 @@ class NotionParserRecrutement(NotionParser):
                 ]
             }
         }
-        return body
+
+        if config.spb_flag:
+            self.append_spb_filter()
+
+
+    def append_spb_filter(self):
+        prop_dict = {"or": [{
+            "property": "Отделения",
+            "multi_select": {"contains": "Санкт-Петербург"}
+        },
+            {
+                "property": "Отделения",
+                "multi_select": {"contains": "Новочеркасская"}
+            },
+            {
+                "property": "Отделения",
+                "multi_select": {"contains": "Приморский"}
+            }
+        ]
+        }
+        self.body["filter"]["and"].append(prop_dict)
 
     def second_filter(self, info: list) -> list:  # TODO: TEST!
         """
@@ -164,8 +187,8 @@ class NotionParserRecrutement(NotionParser):
 
 
 if __name__ == '__main__':
-    start = datetime(day=6, month=3, year=2022)
-    end = datetime(day=6, month=3, year=2022)
+    start = datetime(day=15, month=8, year=2021)
+    end = datetime(day=31, month=8, year=2021)
 
     n = NotionParserRecrutement(start, end)
     n.read_database(config.CANDIDATES_DB_ID)

@@ -1,3 +1,5 @@
+import sys
+
 from table_scaner import Table
 from pprint import pprint
 from datetime import datetime, timedelta
@@ -70,23 +72,24 @@ def main(table: Table) -> str:
                     table_data[0]["values"][0][0] and \
                     logic.table_date_to_datetime_converter(table_data[0]["values"][0][0]):
                 loading_cell = config.table_alphabet[char_ind + 1] + config.loading_str
-
                 table.write(loading_cell, [["👀"]])
                 last_row_char = config.table_alphabet[char_ind + 1]
 
                 start_date, end_date = logic.table_date_to_datetime_converter(table_data[0]["values"][0][0])
-                logger.info(f"[date] {str(start_date)[:10]} - {str(end_date)[:10]}")
+                # logger.info(f"[date] {str(start_date)[:10]} - {str(end_date)[:10]}")
 
                 data = logic.notion_scan(start_date, end_date)
-                logger.info(f"{data=}")
+                # logger.info(f"{data=}")
                 cell_range = config.table_alphabet[char_ind + 1] + "5:" + \
                              config.table_alphabet[char_ind + 2] + f"{5 + len(config.order_stages)}"
+                # pprint(logic.form_final_stages_numbers(data))
                 table.write(cell_range, logic.form_final_stages_numbers(data))
-                table.write(loading_cell, [["✅"]])
+                table.write(loading_cell, [["✔️"]])
         else:
             break
     return last_row_char
 
 
 if __name__ == '__main__':
+    config.get_spb_flag(sys.argv)
     main()

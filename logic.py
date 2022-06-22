@@ -49,7 +49,9 @@ def notion_scan(start: datetime, end: datetime):
     return fields_data
 
 
-def stages_counter(fields_data):
+
+
+def stages_counter(fields_data):  # TODO: REWRITE
     """
     Count all numbers from fields_data.
 
@@ -66,7 +68,7 @@ def stages_counter(fields_data):
     self_denial = 0
 
     if not fields_data:
-        return None, None
+        return None, None, None
     for candidate in fields_data:
         # candidate = {'ФИО': 'Андреев Андрей Андреевич', 'ГС: приглашен': True, 'ГС: дата прихода': ['2022-04-24'] ...}
         stage_index = len(reversed_stages) - 1
@@ -107,16 +109,25 @@ def stages_counter(fields_data):
     return counter, separated_counter, self_denial
 
 
+def get_zero_list():
+    zero_list = []
+    for _ in range(len(config.order_stages) - config.forked_columns_count + 1):
+        zero_list.append(["0"])
+    for i in 8, 9, 10:
+        zero_list[i].append("0")
+    return zero_list
+
+
 def form_final_stages_numbers(fields_data) -> list:
     """
     Form a list for writing it to Google Table.
 
     :param fields_data:
-    :return:
+    :return: list with final numbers
     """
     counted_single_stages, counted_separated_stages, self_denial = stages_counter(fields_data=fields_data)
     if not counted_single_stages:
-        return [["0"]] * (len(config.order_stages) + 1)
+        return get_zero_list()
     pre_final_numbers = list(sorted(counted_single_stages.values(), reverse=True))
     logger.debug(f"{pre_final_numbers=}")
     final_numbers = []
@@ -133,7 +144,6 @@ def form_final_stages_numbers(fields_data) -> list:
     final_numbers.append([self_denial])
     logger.info(final_numbers)
     return final_numbers
-
 
 # start = datetime(day=15, month=4, year=2022)
 # end = datetime(day=28, month=4, year=2022)
