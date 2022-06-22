@@ -49,8 +49,6 @@ def notion_scan(start: datetime, end: datetime):
     return fields_data
 
 
-
-
 def stages_counter(fields_data):  # TODO: REWRITE
     """
     Count all numbers from fields_data.
@@ -144,6 +142,39 @@ def form_final_stages_numbers(fields_data) -> list:
     final_numbers.append([self_denial])
     logger.info(final_numbers)
     return final_numbers
+
+
+def visualize_loading(func):
+    def wrapped(table_data, char_ind, table):
+        loading_cell = config.table_alphabet[char_ind + 1] + config.loading_str
+        table.write(loading_cell, [["👀"]])
+
+        func(table_data, char_ind, table)
+
+        table.write(loading_cell, [["✔️"]])
+
+    return wrapped
+
+
+@visualize_loading
+def write_info_to_spreadsheeds(table_data, char_ind, table):
+    start_date, end_date = table_date_to_datetime_converter(table_data[0]["values"][0][0])
+    logger.info(f"[date] {str(start_date)[:10]} - {str(end_date)[:10]}")
+
+    data = notion_scan(start_date, end_date)
+    logger.info(f"{data=}")
+    cell_range = config.table_alphabet[char_ind + 1] + "5:" + \
+                 config.table_alphabet[char_ind + 2] + f"{5 + len(config.order_stages)}"
+    table.write(cell_range, form_final_stages_numbers(data))
+
+
+def check_data_and_write_info_to_spreadsheets(table_data, char_ind, table):
+    if table_data and \
+            table_data[0] and \
+            "values" in table_data[0].keys() and \
+            table_data[0]["values"][0][0] and \
+            table_date_to_datetime_converter(table_data[0]["values"][0][0]):
+        write_info_to_spreadsheeds(table_data, char_ind, table)
 
 # start = datetime(day=15, month=4, year=2022)
 # end = datetime(day=28, month=4, year=2022)

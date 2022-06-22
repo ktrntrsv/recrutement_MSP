@@ -40,7 +40,7 @@ class Table:
                 token.write(creds.to_json())
         return creds
 
-    def read(self, range_sheets: list = None) -> list:
+    def read(self, range_sheets: list = None) -> any((list, None)):
         """
         Read info for range_sheets range.
 

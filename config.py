@@ -6,7 +6,7 @@ from logger_file import logger
 load_dotenv()
 NOTION_BOT_TOKEN = os.getenv('NOTION_BOT_TOKEN')
 
-data_sheets_list_name = "Actual!"
+data_sheets_list_name = "Разработка!"
 data_sheets_list_name_spb = "Питер!"
 responsible = "Тарасовой К."  # в дательном падеже
 loading_str = "20"  # string with eyes  👀 during loading

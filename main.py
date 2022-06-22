@@ -53,41 +53,17 @@ def main(table: Table) -> str:
     :param table for reading and writing
     :return: str last_row_char
     """
-    end_date = datetime.now() - timedelta(weeks=1000)
 
-    last_row_char = "G"
+    char_ind = "G"
 
     for char_ind in range(config.first_date_row_ind, len(config.table_alphabet)):
-        if (datetime.now() - end_date).days > 0:
-
-            cell_date = f"{config.table_alphabet[char_ind]}2:{config.table_alphabet[char_ind]}2"
-            table_data = table.read([cell_date])
-
-            if not table_data:
-                break
-
-            if table_data and \
-                    table_data[0] and \
-                    "values" in table_data[0].keys() and \
-                    table_data[0]["values"][0][0] and \
-                    logic.table_date_to_datetime_converter(table_data[0]["values"][0][0]):
-                loading_cell = config.table_alphabet[char_ind + 1] + config.loading_str
-                table.write(loading_cell, [["👀"]])
-                last_row_char = config.table_alphabet[char_ind + 1]
-
-                start_date, end_date = logic.table_date_to_datetime_converter(table_data[0]["values"][0][0])
-                # logger.info(f"[date] {str(start_date)[:10]} - {str(end_date)[:10]}")
-
-                data = logic.notion_scan(start_date, end_date)
-                # logger.info(f"{data=}")
-                cell_range = config.table_alphabet[char_ind + 1] + "5:" + \
-                             config.table_alphabet[char_ind + 2] + f"{5 + len(config.order_stages)}"
-                # pprint(logic.form_final_stages_numbers(data))
-                table.write(cell_range, logic.form_final_stages_numbers(data))
-                table.write(loading_cell, [["✔️"]])
-        else:
+        cell_date = f"{config.table_alphabet[char_ind]}2:{config.table_alphabet[char_ind]}2"
+        table_data = table.read([cell_date])
+        if not table_data:
             break
-    return last_row_char
+        logic.check_data_and_write_info_to_spreadsheets(table_data, char_ind, table)
+
+    return config.table_alphabet[char_ind]
 
 
 if __name__ == '__main__':
