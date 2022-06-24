@@ -54,19 +54,9 @@ class NotionParserRecrutement(NotionParser):
 
 
     def append_spb_filter(self):
-        prop_dict = {"or": [{
-            "property": "Отделения",
-            "multi_select": {"contains": "Санкт-Петербург"}
-        },
-            {
-                "property": "Отделения",
-                "multi_select": {"contains": "Новочеркасская"}
-            },
-            {
-                "property": "Отделения",
-                "multi_select": {"contains": "Приморский"}
-            }
-        ]
+        prop_dict = {
+            "property": "Тип",
+            "multi_select": {"contains": "Очный Санкт-Петербург"}
         }
         self.body["filter"]["and"].append(prop_dict)
 
