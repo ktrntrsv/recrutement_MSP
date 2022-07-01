@@ -1,7 +1,7 @@
 from requests import request
 
 import config
-from logger_file import logger
+from loguru import logger
 from abc import ABC, abstractmethod
 from json import dump
 
@@ -15,8 +15,8 @@ class NotionParser:
             "Content-Type": "application/json",
             "Notion-Version": "2021-05-13",
         }
-        self.body = None
         self.db_info = None
+        self.body = {"filter": {}}
         # self.body should look sth like this
         #
         # self.body = {"filter":
@@ -25,12 +25,8 @@ class NotionParser:
 
     def read_database(self, database_id: str) -> None:
         """
-        Read database and write data to self.db_info.
         Self.db_info will be like
         [{'object': 'page', <...> 'properties': {'Т1': {'id': '"=A9', 'type': 'relation', 'relation': [{......}]}}}]
-
-        :param str database_id: Notion database id
-        :return: None
         """
         read_url = f"https://api.notion.com/v1/databases/{database_id}/query"
 
@@ -46,15 +42,9 @@ class NotionParser:
             self.db_info = []
             return
 
-        # logger.debug(f"{response}")
-        # with open("dev.json", "w") as f:
-        #     f.write(str(response["results"]))
-
         self.db_info = response["results"]
 
-        # print(self.db_info)
-
-    def find_field_meaning(self, index: int, field: str) -> any((None, str, int, float, list)):
+    def find_field_meaning(self, candidate_page_index: int, field: str) -> any((None, str, int, float, list)):
         """
         Now method can parse
         1. Title
@@ -67,13 +57,9 @@ class NotionParser:
         4. Select
         5. Number
         6. Formula
-
-        :param int index:  index of a page (candidate) to find information about
-        :param str field:  name of a field in Notion database
-        :return: info from field or None
         """
 
-        info = self.db_info[index]["properties"]
+        info = self.db_info[candidate_page_index]["properties"]
         # info = {'Т1': {'id': '"=A9', 'type': 'relation', 'relation': [{'id': '0c0382ab-dae0-4e2e-aefb-6929cf4ca3a0'}]}
 
         if not info:
@@ -100,7 +86,6 @@ class NotionParser:
                     for i in range(len(info[field]["rollup"]["array"])):
                         if info[field]["rollup"]["array"][i]["date"]:
                             result.append(info[field]["rollup"]["array"][i]["date"]["start"][:10])
-                    # print(f'{field}: {result}')
                     return result
 
                 if rollup_content["type"] == "formula":  # formula string

@@ -7,7 +7,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
-from logger_file import logger
+from loguru import logger
 
 
 class Table:
@@ -19,10 +19,12 @@ class Table:
         self.service = build("sheets", "v4", credentials=self.credentials)
         self.list_name = config.data_sheets_list_name
 
+    @staticmethod
+    def save_credentials(creds):
+        with open("access_files/token.json", "w") as token:
+            token.write(creds.to_json())
+
     def _get_credentials(self) -> Credentials:
-        """
-        :return: credentials
-        """
         creds = None
 
         if os.path.exists("access_files/token.json"):
@@ -35,17 +37,13 @@ class Table:
                 flow = InstalledAppFlow.from_client_secrets_file(
                     "access_files/credentials.json", self.SCOPE)
                 creds = flow.run_local_server(port=0)
-            # Save the credentials for the next run
-            with open("access_files/token.json", "w") as token:
-                token.write(creds.to_json())
+            self.save_credentials(creds)
+
         return creds
 
     def read(self, range_sheets: list = None) -> any((list, None)):
         """
-        Read info for range_sheets range.
-
         :param range_sheets: list, ex: ["A14:A17", "B14:B19"]
-        :return: values (list)
         """
         if not range_sheets:
             range_sheets = []
@@ -67,13 +65,6 @@ class Table:
             logger.error(err)
 
     def write(self, range_sheets: str, values: list) -> None:
-        """
-        Write value info to range_sheets.
-
-        :param range_sheets: str
-        :param values: list
-        :return: None
-        """
         range_sheets = self.list_name + range_sheets
         if not values:
             values = []
@@ -89,10 +80,11 @@ class Table:
         }
 
         try:
-            result = self.service.spreadsheets().values().batchUpdate(
+            self.service.spreadsheets().values().batchUpdate(
                 spreadsheetId=self.SPREADSHEET_ID, body=body).execute()
-            # logger.debug(f"Values written: {result}")
         except HttpError as err:
             logger.error(err)
 
-# data = [{'range': 'Actual!F2:G2', 'majorDimension': 'ROWS', 'values': [['25.04-1.01.22']]}]
+
+if __name__ == '__main__':
+    data = [{'range': 'Actual!F2:G2', 'majorDimension': 'ROWS', 'values': [['25.04-1.01.22']]}]

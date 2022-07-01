@@ -1,21 +1,14 @@
 import sys
+from typing import Callable
 
 from table_scaner import Table
-from pprint import pprint
-from datetime import datetime, timedelta
+from datetime import datetime
 import config
 import logic
-from logger_file import logger
+from loguru import logger
 
 
-def table_warning(func):
-    """
-    Decorator implements loading signs on the Google Table.
-
-    :param func: main
-    :return: func
-    """
-
+def add_table_loading_signs(func: Callable) -> Callable:
     def wrapper() -> None:
         t = Table()
 
@@ -36,24 +29,16 @@ def table_warning(func):
             raise Exception
         finally:
             t.write(warning_cell, [[""], [""]])
-            t.write(f"{config.table_alphabet[config.first_date_row_ind]}{config.loading_str}:"
-                    f"{last_row_char}{config.loading_str}",
+            t.write(f"{config.table_alphabet[config.first_date_row_ind]}{config.loading_with_eyes_table_string_number}:"
+                    f"{last_row_char}{config.loading_with_eyes_table_string_number}",
 
                     [[""] * (config.table_alphabet.index(last_row_char) - config.first_date_row_ind + 1)])
 
     return wrapper
 
 
-@table_warning
+@add_table_loading_signs
 def main(table: Table) -> str:
-    """
-    Walking through the lines, checking if a writing is needed and writing if needed.
-    Also added eyes for loading tracking.
-
-    :param table for reading and writing
-    :return: str last_row_char
-    """
-
     char_ind = "G"
 
     for char_ind in range(config.first_date_row_ind, len(config.table_alphabet)):
@@ -63,7 +48,8 @@ def main(table: Table) -> str:
             break
         logic.check_data_and_write_info_to_spreadsheets(table_data, char_ind, table)
 
-    return config.table_alphabet[char_ind]
+    last_using_row_char = config.table_alphabet[char_ind]
+    return last_using_row_char
 
 
 if __name__ == '__main__':

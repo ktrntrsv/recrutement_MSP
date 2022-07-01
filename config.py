@@ -1,25 +1,22 @@
 import os
 from dotenv import load_dotenv
 import string
-from logger_file import logger
+from loguru import logger
 
 load_dotenv()
 NOTION_BOT_TOKEN = os.getenv('NOTION_BOT_TOKEN')
 
-data_sheets_list_name = "Разработка!"
+data_sheets_list_name = "Вся школа!"
 data_sheets_list_name_spb = "Питер!"
-responsible = "Тарасовой К."  # в дательном падеже
-loading_str = "20"  # string with eyes  👀 during loading
-forked_columns_count = 3  # how many parameters with an assistant/prep separation
+responsible = "Тарасовой Катерине."  # в дательном падеже
+CANDIDATES_DB_ID = "88db000781d54a7abadeda91722489db"
+loading_with_eyes_table_string_number = "20"
+prep_assist_forked_columns_count = 3
 
 spb_flag = False
 
 
 def get_spb_flag(arguments: list) -> None:
-    """
-    :param arguments: list like ['test.py', '--sbp']
-    :return: True if it is a running for Sbp (there is an --sbp arg in terminal)
-    """
     global spb_flag
     global data_sheets_list_name
     if not len(arguments) >= 2:
@@ -34,13 +31,9 @@ def get_spb_flag(arguments: list) -> None:
         data_sheets_list_name = data_sheets_list_name_spb
 
 
-
-def get_column_names() -> list:
+def get_letters_for_column_names() -> list:
     """
-    Get table's table name
-    ['A', 'B', 'C', 'D', 'E', 'F' ... 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG'...]
-
-    :return words list
+    return ['A', 'B', 'C', 'D', 'E', 'F' ... 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG'...]
     """
     s = list(string.ascii_uppercase)
 
@@ -50,16 +43,9 @@ def get_column_names() -> list:
     return s
 
 
-table_alphabet = get_column_names()
-first_date_row_ind = table_alphabet.index("H")  # first row with date
+table_alphabet = get_letters_for_column_names()
+first_date_row_ind = table_alphabet.index("H")
 
-# databases ids
-CANDIDATES_DB_ID = "88db000781d54a7abadeda91722489db"
-GROUP_INTERVIEWS_DB_ID = "15019c70586a413b80e174e789d4599f"
-SUBJECT_CHECK_DB_ID = "3c47f3ff156547cdb578dbf916173ec4"
-INDIVIDUAL_INTERVIEW_DB_ID = "e397cd52ab23448ca63bd703cddb61bd"
-TRAININGS_DB_ID = "3d7e64da3c0d4932bda78288d3f765e5"
-EXAMS_DB_ID = "5df8f2d398e945e5b542a8ba1d7a3073"
 
 order_stages = (
     "gs_invitation_date",
@@ -73,11 +59,11 @@ order_stages = (
 
     "ex_res_prep",
     "shsv_res_prep",
-    "etap_res_prep",
+    "does_conduct_lessons_prep",
 
     "ex_res_ass",
     "shsv_res_ass",
-    "etap_res_ass",  # does he conduct his lessons
+    "does_conduct_lessons_ass",
 )
 
 field_names = {
@@ -93,11 +79,11 @@ field_names = {
 
     "ex_res_prep": "Э: результат",
     "shsv_res_prep": "ШСВ: результат",
-    "etap_res_prep": "Этап",
+    "does_conduct_lessons_prep": "Этап",
 
     "ex_res_ass": "Э: результат",
     "shsv_res_ass": "ШСВ: результат",
-    "etap_res_ass": "Этап",
+    "does_conduct_lessons_ass": "Этап",
 
     "self-denial": "Статус"
 }
