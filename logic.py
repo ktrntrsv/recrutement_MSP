@@ -1,9 +1,42 @@
 from notion.notion_parser_recruitment import \
     NotionParserRecruitment
+from stages_counter import StagesCounter
 # from pprint import pprint
 from datetime import datetime
 from loguru import logger
 import config
+from config import order_stages, count_of_separated_stages, count_of_single_stages
+from table_scaner import Table
+from typing import Callable
+
+
+def add_table_loading_signs(func: Callable) -> Callable:
+    def wrapper() -> None:
+        t = Table()
+
+        warning_cell = "A24:A25"
+        t.write(warning_cell,
+                [["Внимание, таблица обновляется"],
+                 ["Пожалуйста, не совершайте резких движений"]])
+        last_row_char = "G"
+        try:
+            last_row_char = func(t)
+            t.write("A27:A28", [["Последнее обновление:"], [f"{datetime.now()}"[:-10]]])
+            logger.info("Success.")
+        except Exception as ex:
+            t.write("A25:A26",
+                    [[f"Произошла ошибка {ex}."],
+                     [f"Пожалуйста, сообщите об этом {config.responsible}"]])
+            logger.error(Exception.args)
+            raise Exception
+        finally:
+            t.write(warning_cell, [[""], [""]])
+            t.write(f"{config.table_alphabet[config.first_date_row_ind]}{config.loading_with_eyes_table_string_number}:"
+                    f"{last_row_char}{config.loading_with_eyes_table_string_number}",
+
+                    [[""] * (config.table_alphabet.index(last_row_char) - config.first_date_row_ind + 1)])
+
+    return wrapper
 
 
 def table_date_to_datetime_converter(date: str):
@@ -37,102 +70,53 @@ def table_date_to_datetime_converter(date: str):
 def get_period_info_from_notion(start: datetime, end: datetime) -> any((list, None)):
     n = NotionParserRecruitment(start_day=start, end_day=end)
     n.read_database(config.CANDIDATES_DB_ID)
-    fields_data = n.get_fields_meaning()
+    fields_data = n.get_filtered_fields_meaning()
     if not fields_data:
         logger.debug("No fields data")
         return
     return fields_data
 
 
-def is_self_denial(candidate):
-    return candidate["Статус"] and candidate["Статус"] == "Самоотказ" or candidate["Статус"] == "Неизвестен"
-
-
-def stages_counter(fields_data):  # TODO: REWRITE
-    """
-    Count all numbers from fields_data.
-
-    :param fields_data: candidates dictionaries with all needed fields.
-    :return: tuple(counter, self_denial). Counter is a dict with numbers and self_denial is an int number.
-    """
-
-    reversed_stages = tuple(reversed(config.order_stages[:8]))
-    counter = dict.fromkeys(reversed_stages, 0)
-
-    separated_stages = tuple(reversed(config.order_stages[8:]))
-    separated_counter = dict.fromkeys(separated_stages, 0)
-
-    self_denial = 0
-
-    if not fields_data:
-        return None, None, None
-    for candidate in fields_data:
-        # candidate = {'ФИО': 'Андреев Андрей Андреевич', 'ГС: приглашен': True, 'ГС: дата прихода': ['2022-04-24'] ...}
-        stage_index = len(reversed_stages) - 1
-
-        if is_self_denial(candidate):
-            self_denial += 1
-            continue
-        if candidate["Статус"] and candidate["Статус"].startswith("На "):  # "На следующий год", "На лето 2022" etc
-            continue
-
-        logger.info(candidate)
-
-        for index, stage in enumerate(reversed_stages):
-            if candidate[config.field_names[stage]]:
-                stage_index = index
-                break
-
-        for i in range(stage_index, len(reversed_stages)):
-            counter[reversed_stages[i]] += 1
-
-        if not candidate["Э: пришёл"]:
-            continue
-
-        for i, k in ("+ Ассистент", "ass"), ("+ Преподаватель", "prep"):
-            if candidate["Э: результат"] == i and candidate["Этап"]:
-                separated_counter[f"does_conduct_lessons_{k}"] += 1
-                separated_counter[f"shsv_res_{k}"] += 1
-                separated_counter[f"ex_res_{k}"] += 1
-                break
-            if candidate["Э: результат"] == i and candidate["ШСВ: результат"]:
-                separated_counter[f"shsv_res_{k}"] += 1
-                separated_counter[f"ex_res_{k}"] += 1
-                break
-            if candidate["Э: результат"] == i:
-                separated_counter[f"ex_res_{k}"] += 1
-
-    logger.info(f"{counter=}, {separated_counter=}")
-    return counter, separated_counter, self_denial
-
-
 def append_doubled_stages(final_numbers, counted_separated_stages):
-    for prp_stage, ass_stage in (("ex_res_prep", "ex_res_ass"),
-                                 ("shsv_res_prep", "shsv_res_ass"),
-                                 ("does_conduct_lessons_prep", "does_conduct_lessons_ass")):
+    separated_couples = tuple(zip(
+        order_stages[-count_of_separated_stages * 2:-count_of_separated_stages],
+        order_stages[-count_of_separated_stages:]
+    ))
+    """
+    Example:
+    (("ex_res_prep", "ex_res_ass"),
+    ("shsv_came_prep", "shsv_came_ass"),
+    ("shsv_res_prep", "shsv_res_ass"),
+    ("does_conduct_lessons_prep", "does_conduct_lessons_ass"))
+    """
+
+    for prp_stage, ass_stage in separated_couples:
         final_numbers.append([counted_separated_stages[prp_stage],
                               counted_separated_stages[ass_stage]])
 
 
 def get_list_for_zero_table_column():
     zero_list = []
-    for _ in range(len(config.order_stages) - config.prep_assist_forked_columns_count + 1):
+    for _ in range(len(order_stages) - count_of_separated_stages + 1):
         zero_list.append(["0"])
-    for i in 8, 9, 10:
+
+    separated_stages_indexes = tuple(
+        range(
+            count_of_single_stages + count_of_separated_stages))[count_of_single_stages:
+
+                                                                 count_of_single_stages +
+                                                                 count_of_separated_stages]
+
+    for i in separated_stages_indexes:
         zero_list[i].append("0")
     return zero_list
 
 
-def form_final_stages_numbers(fields_data) -> list:
-    """
-    :param fields_data:
-    :return: list with final numbers
-    """
-    counted_single_stages, counted_separated_stages, self_denial = stages_counter(fields_data=fields_data)
+def glue_single_separated_self_denial_numbers(fields_data: list) -> list:
+    counted_single_stages, counted_separated_stages, self_denial = StagesCounter(fields_data).count_for_all()
     if not counted_single_stages:
         return get_list_for_zero_table_column()
     pre_final_numbers = list(sorted(counted_single_stages.values(), reverse=True))
-    logger.debug(f"{pre_final_numbers=}")
     final_numbers = []
     for i in pre_final_numbers:
         final_numbers.append([i])
@@ -140,7 +124,6 @@ def form_final_stages_numbers(fields_data) -> list:
     append_doubled_stages(final_numbers, counted_separated_stages)
 
     final_numbers.append([self_denial])
-    logger.info(final_numbers)
     return final_numbers
 
 
@@ -170,12 +153,10 @@ def write_info_to_spreadsheets(table_data, char_ind, table):
     start_date, end_date = table_date_to_datetime_converter(table_data[0]["values"][0][0])
     logger.info(f"[date] {str(start_date)[:10]} - {str(end_date)[:10]}")
 
-    data = get_period_info_from_notion(start_date, end_date)
-    logger.info(f"{data=}")
     cell_range = config.table_alphabet[char_ind + 1] + "5:" + \
-                 config.table_alphabet[char_ind + 2] + f"{5 + len(config.order_stages)}"
-    table.write(cell_range, form_final_stages_numbers(data))
+                 config.table_alphabet[char_ind + 2] + f"{5 + len(order_stages)}"
 
-# start = datetime(day=15, month=4, year=2022)
-# end = datetime(day=28, month=4, year=2022)
-# logger.info(form_final_stages_numbers(notion_scan(start, end)))
+    data = get_period_info_from_notion(start_date, end_date)
+    data = glue_single_separated_self_denial_numbers(data)
+
+    table.write(cell_range, data)

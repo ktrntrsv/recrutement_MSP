@@ -44,7 +44,7 @@ class NotionParser:
 
         self.db_info = response["results"]
 
-    def find_field_meaning(self, candidate_page_index: int, field: str) -> any((None, str, int, float, list)):
+    def find_field_meaning(self, candidate_index: int, field: str) -> any((None, str, int, float, list)):
         """
         Now method can parse
         1. Title
@@ -59,7 +59,7 @@ class NotionParser:
         6. Formula
         """
 
-        info = self.db_info[candidate_page_index]["properties"]
+        info = self.db_info[candidate_index]["properties"]
         # info = {'Т1': {'id': '"=A9', 'type': 'relation', 'relation': [{'id': '0c0382ab-dae0-4e2e-aefb-6929cf4ca3a0'}]}
 
         if not info:
