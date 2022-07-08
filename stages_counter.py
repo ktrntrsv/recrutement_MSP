@@ -34,7 +34,6 @@ class StagesCounter:
             self.calculate_for_separated(candidate)
 
         return self.single_counter, self.separated_counter, self.self_denial
-    
 
     def calculate_for_singles(self, candidate):
         stage_index = len(self.reversed_single_stages) - 1
@@ -48,19 +47,19 @@ class StagesCounter:
             self.single_counter[self.reversed_single_stages[i]] += 1
 
     def calculate_for_separated(self, candidate) -> None:
-        stage_index = len(self.separated_counter) - 1
-
         candidate_role = self.get_candidate_role(candidate)
 
         if not candidate_role:
             return None
 
+        stage_index = len(self.separated_counter) - 1
         stages_for_role = self.get_role_stages(candidate_role)
         reversed_stages_for_role = tuple(reversed(stages_for_role))
 
         for index, stage in enumerate(reversed_stages_for_role):
             if candidate[config.field_names[stage]]:
                 stage_index = index
+                break
 
         for i in range(stage_index, len(stages_for_role)):
             self.separated_counter[reversed_stages_for_role[i]] += 1
@@ -74,8 +73,11 @@ class StagesCounter:
 
     @staticmethod
     def get_candidate_role(candidate) -> str:
-        if candidate["Э: результат ₓ"] == "+ Ассистент":
-            return "ass"
-        if candidate["Э: результат ₓ"] == "+ Преподаватель":
+        if candidate["Э: результат ₓ"] and \
+                "+ Преподаватель" in candidate["Э: результат ₓ"]:
             return "prep"
+
+        if candidate["Э: результат ₓ"] and \
+                "+ Ассистент" in candidate["Э: результат ₓ"]:
+            return "ass"
         return ""

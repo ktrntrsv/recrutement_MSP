@@ -1,6 +1,4 @@
 import sys
-
-from datetime import datetime
 import config
 import logic
 from loguru import logger

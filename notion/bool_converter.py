@@ -44,6 +44,6 @@ def check_other_cases(prop):
     param = prop["Э: результат ₓ"]
     if param:
         prop["Э: пришёл ₓ"] = True
-        if param == "Пересдача":
+        if param == ["Пересдача"]:
             prop["Э: пришёл ₓ"] = False
             prop["Э: результат ₓ"] = False

@@ -24,7 +24,7 @@ def add_table_loading_signs(func: Callable) -> Callable:
             t.write("A27:A28", [["Последнее обновление:"], [f"{datetime.now()}"[:-10]]])
             logger.info("Success.")
         except Exception as ex:
-            t.write("A25:A26",
+            t.write("A22:A23",
                     [[f"Произошла ошибка {ex}."],
                      [f"Пожалуйста, сообщите об этом {config.responsible}"]])
             logger.error(Exception.args)

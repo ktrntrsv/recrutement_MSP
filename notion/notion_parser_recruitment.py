@@ -47,20 +47,6 @@ class NotionParserRecruitment(NotionParser):
         }
         self.body["filter"]["and"].append(prop_dict)
 
-    def get_indexes_of_popped_preps(self, prep_list):
-        ind_to_pop = []
-
-        for i, prep in enumerate(prep_list):
-            # logger.debug(prep["ФИО"])  # sometimes ФИО is "", it's ok, do not pop candidate
-            date = self.get_max_date(date=prep["ГС: дата приглашения ₓ"])
-            prep["ГС: дата приглашения ₓ"] = [date]
-            date = datetime.strptime(date, "%Y-%m-%d")  # from string to datetime
-
-            if (date - self.end_day).days > 0 or (self.start_day - date).days > 0:
-                ind_to_pop.append(i)
-                logger.info(f'pop {prep["ФИО"]}')
-        return ind_to_pop
-
     @staticmethod
     def get_max_date(date: list) -> str:
         for ind, day in enumerate(date):
@@ -79,18 +65,19 @@ class NotionParserRecruitment(NotionParser):
         if not self.db_info:
             return []
 
-        result = self.get_fields_meaning_for_every_candndate()
+        result = self.get_fields_meaning_for_every_candidate()
         result = self.apply_filter_by_date_of_gs_invitation(result)
         result = bool_converter.convert(result)
         return result
 
-    def get_fields_meaning_for_every_candndate(self):
+    def get_fields_meaning_for_every_candidate(self):
         result = [{} for _ in range(len(self.db_info))]
 
         for candidate_ind in range(len(self.db_info)):
             for field in config.field_names.values():
                 filed_meaning = self.find_field_meaning(candidate_ind, field)
                 result[candidate_ind][field] = filed_meaning
+            logger.debug(f"[{result[candidate_ind]['ФИО']}]: {result[candidate_ind]}")
         return result
 
     def apply_filter_by_date_of_gs_invitation(self, info: list) -> list:
@@ -107,3 +94,15 @@ class NotionParserRecruitment(NotionParser):
 
         return info
 
+    def get_indexes_of_popped_preps(self, prep_list):
+        ind_to_pop = []
+
+        for i, prep in enumerate(prep_list):
+            # logger.debug(prep["ФИО"])  # sometimes ФИО is "", it's ok, do not pop candidate
+            date = self.get_max_date(date=prep["ГС: дата приглашения ₓ"])
+            prep["ГС: дата приглашения ₓ"] = [date]
+            date = datetime.strptime(date, "%Y-%m-%d")  # from string to datetime
+
+            if (date - self.end_day).days > 0 or (self.start_day - date).days > 0:
+                ind_to_pop.append(i)
+        return ind_to_pop

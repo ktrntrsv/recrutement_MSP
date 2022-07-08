@@ -81,14 +81,14 @@ class NotionParser:
                 elif rollup_content["type"] == "checkbox":  # checkbox check
                     return rollup_content["checkbox"]
 
-                if rollup_content["type"] == "date":  # date check
+                elif rollup_content["type"] == "date":  # date check
                     result = []
                     for i in range(len(info[field]["rollup"]["array"])):
                         if info[field]["rollup"]["array"][i]["date"]:
                             result.append(info[field]["rollup"]["array"][i]["date"]["start"][:10])
                     return result
 
-                if rollup_content["type"] == "formula":  # formula string
+                elif rollup_content["type"] == "formula":  # formula string
                     if rollup_content["formula"]["type"] == "string":
                         return rollup_content["formula"]["string"].strip()
 
@@ -114,9 +114,18 @@ class NotionParser:
         elif field_type == "select":  # select, if field is empty, it will not be sent
             return info[field]["select"]["name"]
 
+        elif field_type == "multi_select" and \
+                info[field]["multi_select"]:
+
+            # logger.debug(info[field]["multi_select"])
+            multi = []
+            for select in info[field]["multi_select"]:
+                multi.append(select["name"])
+            return multi
+
         elif field_type == "number":  # number, if field is empty, it will not be sent
             return info[field]["number"]
 
         if field_type == "formula":  # it works for strings and boolean
             formula_type = info[field][field_type]["type"]
-            return info[field][field_type][formula_type]  # todo: test for not string and not formula
+            return info[field][field_type][formula_type]
