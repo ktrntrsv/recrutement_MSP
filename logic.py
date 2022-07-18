@@ -8,20 +8,16 @@ import config
 from config import order_stages, count_of_separated_stages, count_of_single_stages
 from table_scaner import Table
 from typing import Callable
-
+from datetime import timedelta
 
 def add_table_loading_signs(func: Callable) -> Callable:
     def wrapper() -> None:
         t = Table()
 
-        warning_cell = "A24:A25"
-        t.write(warning_cell,
-                [["Внимание, таблица обновляется"],
-                 ["Пожалуйста, не совершайте резких движений"]])
         last_row_char = "G"
         try:
             last_row_char = func(t)
-            t.write("A27:A28", [["Последнее обновление:"], [f"{datetime.now()}"[:-10]]])
+            t.write("A24:A25", [["Последнее обновление:"], [f"{datetime.now() + timedelta(hours=3)}"[:16]]])
             logger.info("Success.")
         except Exception as ex:
             t.write("A22:A23",
@@ -30,7 +26,6 @@ def add_table_loading_signs(func: Callable) -> Callable:
             logger.error(Exception.args)
             raise Exception
         finally:
-            t.write(warning_cell, [[""], [""]])
             t.write(f"{config.table_alphabet[config.first_date_row_ind]}{config.loading_with_eyes_table_string_number}:"
                     f"{last_row_char}{config.loading_with_eyes_table_string_number}",
 
