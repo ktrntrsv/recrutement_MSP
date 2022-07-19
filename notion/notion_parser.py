@@ -1,9 +1,7 @@
 from requests import request
 
 import config
-from loguru import logger
-from abc import ABC, abstractmethod
-from json import dump
+from logger_file import logger
 
 
 class NotionParser:

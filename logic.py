@@ -1,13 +1,13 @@
 from notion.notion_parser_recruitment import \
     NotionParserRecruitment
-from stages_counter import StagesCounter
-# from pprint import pprint
+from typing import Callable
 from datetime import datetime
-from loguru import logger
+
 import config
 from config import order_stages, count_of_separated_stages, count_of_single_stages
 from table_scaner import Table
-from typing import Callable
+from stages_counter import StagesCounter
+from logger_file import logger
 
 
 def add_table_loading_signs(func: Callable) -> Callable:

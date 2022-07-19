@@ -1,13 +1,14 @@
 import os
-from dotenv import load_dotenv
 import string
-from loguru import logger
+from dotenv import load_dotenv
+
+from logger_file import logger
 
 load_dotenv()
 NOTION_BOT_TOKEN = os.getenv('NOTION_BOT_TOKEN')
 
-# data_sheets_list_name = "Разработка!"
-data_sheets_list_name = "Вся школа!"
+data_sheets_list_name = "Разработка!"
+# data_sheets_list_name = "Вся школа!"
 data_sheets_list_name_spb = "Питер!"
 responsible = "Тарасовой Катерине."  # в дательном падеже
 CANDIDATES_DB_ID = "88db000781d54a7abadeda91722489db"
@@ -16,7 +17,7 @@ loading_with_eyes_table_string_number = "23"
 spb_flag = False
 
 
-#todo подумать, куда можно закинуть эти две отщепенистые функции, почему они вообще в конфиге, аххаха
+# todo подумать, куда можно закинуть эти две отщепенистые функции, почему они вообще в конфиге, аххаха
 
 def get_spb_flag(arguments: list) -> None:
     global spb_flag
@@ -76,26 +77,26 @@ order_stages = (
 
 field_names = {
     "fio": "ФИО",
-    "gs_invitation_date":"ГС: дата приглашения ₓ",
+    "gs_invitation_date": "ГС: дата приглашения ₓ",
     "gs_date_of_attendance": "ГС: дата прихода ₓ",
-    "gs_res":                       "Прошел ГС ₓ",
-    "pp_came":                     "ПП: пришел ₓ",
-    "pp_res":                   "ПП: результат ₓ",
-    "is_came":                     "ИС: пришел ₓ",
-    "is_res":                   "ИС: результат ₓ",
-    "t_taking":                            "Т1 ₓ",
-    "t_res":                      "Т: пройдены ₓ",
-    "ex_came":                      "Э: пришёл ₓ",
+    "gs_res": "Прошел ГС ₓ",
+    "pp_came": "ПП: пришел ₓ",
+    "pp_res": "ПП: результат ₓ",
+    "is_came": "ИС: пришел ₓ",
+    "is_res": "ИС: результат ₓ",
+    "t_taking": "Т1 ₓ",
+    "t_res": "Т: пройдены ₓ",
+    "ex_came": "Э: пришёл ₓ",
 
-    "ex_res_prep":               "Э: результат ₓ",
-    "shsv_came_prep":             "ШСВ: пришел ₓ",
-    "shsv_res_prep":           "ШСВ: результат ₓ",
-    "does_conduct_lessons_prep":         "Этап ₓ",
+    "ex_res_prep": "Э: результат ₓ",
+    "shsv_came_prep": "ШСВ: пришел ₓ",
+    "shsv_res_prep": "ШСВ: результат ₓ",
+    "does_conduct_lessons_prep": "Этап ₓ",
 
-    "ex_res_ass":                "Э: результат ₓ",
-    "shsv_came_ass":              "ШСВ: пришел ₓ",
-    "shsv_res_ass":            "ШСВ: результат ₓ",
-    "does_conduct_lessons_ass":          "Этап ₓ",
+    "ex_res_ass": "Э: результат ₓ",
+    "shsv_came_ass": "ШСВ: пришел ₓ",
+    "shsv_res_ass": "ШСВ: результат ₓ",
+    "does_conduct_lessons_ass": "Этап ₓ",
 
-    "self-denial":                     "Статус ₓ"
+    "self-denial": "Статус ₓ"
 }

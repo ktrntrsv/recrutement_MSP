@@ -1,7 +1,7 @@
 import sys
+
 import config
 import logic
-from loguru import logger
 
 
 @logic.add_table_loading_signs
