@@ -1,11 +1,9 @@
-from collections import namedtuple
 from datetime import datetime, timedelta
-from pprint import pprint
 
 import config
+from logger_file import logger
 from notion.notion_parser import NotionParser
 import notion.bool_converter as bool_converter
-from loguru import logger
 
 
 class NotionParserRecruitment(NotionParser):

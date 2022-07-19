@@ -1,5 +1,4 @@
 import config
-from loguru import logger
 
 
 class StagesCounter:
