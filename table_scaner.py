@@ -68,7 +68,7 @@ class Table:
                 return []
             return values
         except HttpError as err:
-            logger.error(err)
+            logger.info(err)
 
     def write(self, range_sheets: str, values: list) -> None:
         range_sheets = self.list_name + range_sheets
