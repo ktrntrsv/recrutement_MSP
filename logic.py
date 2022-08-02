@@ -16,6 +16,7 @@ def add_table_loading_signs(func: Callable) -> Callable:
 
         warning_cell = "A24:A25"
 
+        t.write("A26:A27", ["", ""])  # request limit google warning was logged here
         t.write(warning_cell,
                 [["Внимание, таблица обновляется"],
                  ["Пожалуйста, не совершайте резких движений"]])
@@ -160,3 +161,4 @@ def write_info_to_spreadsheets(table_data, char_ind, table):
     data = glue_single_separated_self_denial_numbers(data)
 
     table.write(cell_range, data)
+

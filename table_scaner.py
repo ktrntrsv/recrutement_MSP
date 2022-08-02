@@ -1,5 +1,6 @@
 import os.path
 from sys import exit
+from datetime import datetime
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -47,7 +48,7 @@ class Table:
 
         return creds
 
-    def read(self, range_sheets: list = None) -> any((list, None)):
+    def read(self, range_sheets: list = None) -> any((list, HttpError, None)):
         """
         :param range_sheets: list, ex: ["A14:A17", "B14:B19"]
         """
@@ -68,7 +69,15 @@ class Table:
                 return []
             return values
         except HttpError as err:
-            logger.info(err)
+            self.error_processing(err)
+
+    def error_processing(self, err):
+        if err.status_code == 429:
+            logger.error("Requests limit exceeded")
+            self.write("A26:A27",
+                       [f"Сообщение от {'{datetime.now() + timedelta(hours=3)}'[:-10]}",
+                        f"Requests limit exceeded. Не все данные обновлены. Обратитесь к {config.responsible}"])
+        logger.info(err)
 
     def write(self, range_sheets: str, values: list) -> None:
         range_sheets = self.list_name + range_sheets
@@ -90,5 +99,3 @@ class Table:
                 spreadsheetId=self.SPREADSHEET_ID, body=body).execute()
         except HttpError as err:
             logger.error(err)
-
-

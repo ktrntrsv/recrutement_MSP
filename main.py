@@ -2,10 +2,11 @@ import sys
 
 import config
 import logic
+from table_scaner import Table
 
 
 @logic.add_table_loading_signs
-def main(table) -> str:
+def main(table: Table) -> str:
     char_ind = "G"
 
     for char_ind in range(config.first_date_row_ind, len(config.table_alphabet)):

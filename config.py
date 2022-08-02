@@ -2,8 +2,6 @@ import os
 import string
 from dotenv import load_dotenv
 
-from logger_file import logger
-
 load_dotenv()
 NOTION_BOT_TOKEN = os.getenv('NOTION_BOT_TOKEN')
 
@@ -32,6 +30,9 @@ def get_spb_flag(arguments: list) -> None:
 
         spb_flag = True
         data_sheets_list_name = data_sheets_list_name_spb
+
+
+from logger_file import logger
 
 
 def get_letters_for_column_names() -> list:
