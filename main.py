@@ -6,18 +6,10 @@ from table_scaner import Table
 
 
 @logic.add_table_loading_signs
-def main(table: Table) -> str:
-    char_ind = "G"
-
-    for char_ind in range(config.first_date_row_ind, len(config.table_alphabet)):
-        cell_date = f"{config.table_alphabet[char_ind]}2:{config.table_alphabet[char_ind]}2"
-        table_data = table.read([cell_date])
-        if not table_data:
-            break
-        logic.check_data_and_write_info_to_spreadsheets(table_data, char_ind, table)
-
-    last_using_row_char = config.table_alphabet[char_ind]
-    return last_using_row_char
+def main(table: Table) -> None:
+    row_with_dates = table.read([f"O2:ZZZ2"])[0]["values"][0]
+    for column_letter, date in logic.get_sheet_to_write_generator(row_with_dates):
+        logic.write_info_to_column(date, column_letter, table)
 
 
 if __name__ == '__main__':

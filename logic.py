@@ -4,7 +4,7 @@ from typing import Callable
 from datetime import datetime, timedelta
 
 import config
-from config import order_stages, count_of_separated_stages, count_of_single_stages
+from config import order_stages, count_of_separated_stages, count_of_single_stages, table_alphabet
 from table_scaner import Table
 from stages_counter import StagesCounter
 from logger_file import logger
@@ -16,13 +16,12 @@ def add_table_loading_signs(func: Callable) -> Callable:
 
         warning_cell = "A24:A25"
 
-        t.write("A26:A27", ["", ""])  # request limit google warning was logged here
+        t.write("A26:A27", [[""], [""]])  # request limit google warning was logged here
         t.write(warning_cell,
                 [["Внимание, таблица обновляется"],
                  ["Пожалуйста, не совершайте резких движений"]])
-        last_row_char = "G"
         try:
-            last_row_char = func(t)
+            func(t)
             t.write(warning_cell, [["Последнее обновление:"], [f"{datetime.now() + timedelta(hours=3)}"[:-10]]])
             logger.info("Success.")
         except Exception as ex:
@@ -32,15 +31,18 @@ def add_table_loading_signs(func: Callable) -> Callable:
             logger.error(Exception.args)
             raise Exception
         finally:
-            t.write(f"{config.table_alphabet[config.first_date_row_ind]}{config.loading_with_eyes_table_string_number}:"
-                    f"{last_row_char}{config.loading_with_eyes_table_string_number}",
+            global cut_table_alphabet
+            sheets_to_clean = f"{cut_table_alphabet[0]}2:{cut_table_alphabet[-1]}2"
+            t.write(
+                f"{cut_table_alphabet[0]}{config.loading_with_eyes_table_string_number}:"
+                f"{cut_table_alphabet[-1]}{config.loading_with_eyes_table_string_number}",
 
-                    [[""] * (config.table_alphabet.index(last_row_char) - config.first_date_row_ind + 1)])
+                [[""] * len(cut_table_alphabet)])
 
     return wrapper
 
 
-def table_date_to_datetime_converter(date: str):
+def table_date_to_datetime_converter(date: str) -> any((tuple, None)):
     """
     Parse table string date (ex: "12.03-19.03.22") to two datetime variables
 
@@ -66,6 +68,49 @@ def table_date_to_datetime_converter(date: str):
 
     except ValueError:
         return None
+
+
+def get_next_alph_letter(letter):
+    global cut_table_alphabet
+    return cut_table_alphabet[cut_table_alphabet.index(letter) + 1]
+
+
+def get_sheet_to_write_generator(row_content: list):
+    start_ind = config.table_alphabet.index("O")
+    global cut_table_alphabet
+    cut_table_alphabet = table_alphabet[start_ind:len(row_content) + start_ind]
+    rows_to_content = dict(zip(cut_table_alphabet, row_content))
+    print(rows_to_content)
+    for column_letter, date in rows_to_content.items():
+        if date \
+                and "TOTAL" not in date \
+                and table_date_to_datetime_converter(date):
+            yield get_next_alph_letter(column_letter), date
+
+
+def visualize_loading(func):
+    def wrapped(info, column_letter, table):
+        loading_cell = column_letter + config.loading_with_eyes_table_string_number
+        table.write(loading_cell, [["👀"]])
+
+        func(info, column_letter, table)
+
+        table.write(loading_cell, [["✔️"]])
+
+    return wrapped
+
+
+@visualize_loading
+def write_info_to_column(info, column_letter, table: Table):
+    start_date, end_date = table_date_to_datetime_converter(info)
+    logger.info(f"[date] {str(start_date)[:10]} - {str(end_date)[:10]}")
+
+    data = get_period_info_from_notion(start_date, end_date)
+    data = glue_single_separated_self_denial_numbers(data)
+
+    cell_range = f"{column_letter}5:{get_next_alph_letter(column_letter)}{5 + len(order_stages)}"
+
+    table.write(cell_range, data)
 
 
 def get_period_info_from_notion(start: datetime, end: datetime) -> any((list, None)):
@@ -126,39 +171,3 @@ def glue_single_separated_self_denial_numbers(fields_data: list) -> list:
 
     final_numbers.append([self_denial])
     return final_numbers
-
-
-def check_data_and_write_info_to_spreadsheets(table_data, char_ind, table):
-    if table_data and \
-            table_data[0] and \
-            "values" in table_data[0].keys() and \
-            table_data[0]["values"][0][0] and \
-            table_date_to_datetime_converter(table_data[0]["values"][0][0]):
-        write_info_to_spreadsheets(table_data, char_ind, table)
-
-
-def visualize_loading(func):
-    def wrapped(table_data, char_ind, table):
-        loading_cell = config.table_alphabet[char_ind + 1] + config.loading_with_eyes_table_string_number
-        table.write(loading_cell, [["👀"]])
-
-        func(table_data, char_ind, table)
-
-        table.write(loading_cell, [["✔️"]])
-
-    return wrapped
-
-
-@visualize_loading
-def write_info_to_spreadsheets(table_data, char_ind, table):
-    start_date, end_date = table_date_to_datetime_converter(table_data[0]["values"][0][0])
-    logger.info(f"[date] {str(start_date)[:10]} - {str(end_date)[:10]}")
-
-    cell_range = config.table_alphabet[char_ind + 1] + "5:" + \
-                 config.table_alphabet[char_ind + 2] + f"{5 + len(order_stages)}"
-
-    data = get_period_info_from_notion(start_date, end_date)
-    data = glue_single_separated_self_denial_numbers(data)
-
-    table.write(cell_range, data)
-

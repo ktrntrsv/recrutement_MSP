@@ -1,6 +1,6 @@
 import os.path
 from sys import exit
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -75,8 +75,8 @@ class Table:
         if err.status_code == 429:
             logger.error("Requests limit exceeded")
             self.write("A26:A27",
-                       [f"Сообщение от {'{datetime.now() + timedelta(hours=3)}'[:-10]}",
-                        f"Requests limit exceeded. Не все данные обновлены. Обратитесь к {config.responsible}"])
+                       [[f"Сообщение от {datetime.now() + timedelta(hours=3)}"[:-10]],
+                        [f"Requests limit exceeded. Не все данные обновлены. Обратитесь к {config.responsible}"]])
         logger.info(err)
 
     def write(self, range_sheets: str, values: list) -> None:

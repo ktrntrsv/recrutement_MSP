@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 NOTION_BOT_TOKEN = os.getenv('NOTION_BOT_TOKEN')
 
-data_sheets_list_name = "Разработка!"
-# data_sheets_list_name = "Вся школа!"
+# data_sheets_list_name = "Разработка!"
+data_sheets_list_name = "Вся школа!"
 data_sheets_list_name_spb = "Питер!"
 responsible = "Тарасовой Катерине."  # в дательном падеже
 CANDIDATES_DB_ID = "88db000781d54a7abadeda91722489db"
@@ -48,7 +48,6 @@ def get_letters_for_column_names() -> list:
 
 
 table_alphabet = get_letters_for_column_names()
-first_date_row_ind = table_alphabet.index("H")
 
 count_of_single_stages = 10
 count_of_separated_stages = 4
