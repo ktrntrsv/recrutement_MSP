@@ -114,3 +114,4 @@ class NotionParserRecruitment(NotionParser):
             if prep["ГС: дата прихода ₓ"] and \
                     prep["ГС: дата прихода ₓ"] != prep["ГС: дата приглашения ₓ"]:
                 prep["ГС: дата прихода ₓ"] = []
+

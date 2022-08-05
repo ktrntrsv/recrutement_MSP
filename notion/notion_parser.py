@@ -67,26 +67,26 @@ class NotionParser:
             return None
         field_type = info[field]["type"]
 
-        if field_type == "rollup":  # rollup
+        if field_type == "rollup":
             if info[field]["rollup"]["array"]:
 
                 rollup_content = info[field]["rollup"]["array"][0]
 
                 if rollup_content["type"] == "select" and \
-                        rollup_content["select"]:  # if field type -- select if field is not empty
+                        rollup_content["select"]:
                     return rollup_content["select"]["name"]
 
-                elif rollup_content["type"] == "checkbox":  # checkbox check
+                elif rollup_content["type"] == "checkbox":
                     return rollup_content["checkbox"]
 
-                elif rollup_content["type"] == "date":  # date check
+                elif rollup_content["type"] == "date":
                     result = []
                     for i in range(len(info[field]["rollup"]["array"])):
                         if info[field]["rollup"]["array"][i]["date"]:
                             result.append(info[field]["rollup"]["array"][i]["date"]["start"][:10])
                     return result
 
-                elif rollup_content["type"] == "formula":  # formula string
+                elif rollup_content["type"] == "formula":
                     if rollup_content["formula"]["type"] == "string":
                         return rollup_content["formula"]["string"].strip()
 
@@ -109,21 +109,21 @@ class NotionParser:
                 return info[field]["title"][0]["plain_text"]
             return None
 
-        elif field_type == "select":  # select, if field is empty, it will not be sent
+        elif field_type == "select":
             return info[field]["select"]["name"]
 
         elif field_type == "multi_select" and \
                 info[field]["multi_select"]:
 
-            # logger.debug(info[field]["multi_select"])
             multi = []
             for select in info[field]["multi_select"]:
                 multi.append(select["name"])
             return multi
 
-        elif field_type == "number":  # number, if field is empty, it will not be sent
+        elif field_type == "number":
             return info[field]["number"]
 
-        if field_type == "formula":  # it works for strings and boolean
+        if field_type == "formula":  # it works for strings and boolean 100%
             formula_type = info[field][field_type]["type"]
             return info[field][field_type][formula_type]
+
