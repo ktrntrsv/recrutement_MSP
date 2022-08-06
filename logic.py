@@ -1,18 +1,15 @@
-from notion.notion_parser_recruitment import \
-    NotionParserRecruitment
 from typing import Callable, List
 from datetime import datetime, timedelta
 
 import config
 from config import order_stages, count_of_separated_stages, count_of_single_stages, table_alphabet
+from notion.notion_parser_recruitment import \
+    NotionParserRecruitment
+from subjects_distribution import get_subj_distribution, write_subj_distribution
 from table_scaner import Table
 from stages_counter import StagesCounter
 from logger_file import logger
-from collections.abc import Sequence
-from collections import Counter
 
-
-subj_distribution = {"preps": Counter(), "assist": Counter()}
 
 def get_sheets_to_write_generator(row_content: list):
     start_ind = config.table_alphabet.index("O")
@@ -96,43 +93,6 @@ def get_period_info_from_notion(start: datetime, end: datetime) -> any((list, No
     return fields_data
 
 
-def get_subj_distribution(data):
-    # for prep in data:
-    #     if prep["Э: результат ₓ"]:
-    #         logger.error(prep)
-
-    passed_exam_preps = []
-    passed_exam_assists = []
-    if not data:
-        return
-    for prep in data:
-        if not prep["Э: результат ₓ"] or prep["Э: результат ₓ"] == ["Отказ"]:
-            continue
-        if "+ Преподаватель" in prep["Э: результат ₓ"]:
-            passed_exam_preps.append(prep["ГС: Может вести ₓ"])
-            logger.error(prep["ФИО"])
-        elif "+ Ассистент" in prep["Э: результат ₓ"]:
-            passed_exam_assists.append(prep["ГС: Может вести ₓ"])
-            logger.error(prep["ФИО"], prep["ГС: Может вести ₓ"])
-    count_subjects(passed_exam_preps, passed_exam_assists)
-
-
-def count_subjects(preps_subj, assists_subj):
-    global subj_distribution
-    subjects = ("Python", "Python (младшие классы)", "C++", "Scratch", "C#", "Компьютерные сети", "Дискретная математика")
-    for subj in subjects:
-        for prep in preps_subj:
-            if prep and subj in prep:
-                subj_distribution["preps"][subj] += 1
-        for assist in assists_subj:
-            if assist and subj in assist:
-                subj_distribution["assist"][subj] += 1
-
-    for i in "preps", "assist":
-        subj_distribution[i]["Python"] += subj_distribution[i]["Python (младшие классы)"]
-        subj_distribution[i]["Python (младшие классы)"] = 0
-
-
 def glue_single_separated_self_denial_numbers(counted_single_stages, counted_separated_stages, self_denial) -> list:
     if not counted_single_stages:
         return get_list_for_zero_table_column()
@@ -209,12 +169,3 @@ def add_table_loading_signs(func: Callable) -> Callable:
                 [[""] * len(cut_table_alphabet)])
 
     return wrapper
-
-
-def write_subj_distribution(table: Table):
-    result = []
-    subjs = ("Python", "C++", "C#", "Scratch", "Компьютерные сети", "Дискретная математика")
-    for subj in subjs:
-        result.append([subj_distribution["preps"][subj],
-                       subj_distribution["assist"][subj]])
-    table.write("DO12:DP17", result)

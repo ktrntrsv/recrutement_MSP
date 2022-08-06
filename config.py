@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 NOTION_BOT_TOKEN = os.getenv('NOTION_BOT_TOKEN')
 
-data_sheets_list_name = "Разработка!"
-# data_sheets_list_name = "Вся школа!"
+# data_sheets_list_name = "Разработка!"
+data_sheets_list_name = "Вся школа!"
 data_sheets_list_name_spb = "Питер!"
 responsible = "Тарасовой Катерине."  # в дательном падеже
 CANDIDATES_DB_ID = "88db000781d54a7abadeda91722489db"
