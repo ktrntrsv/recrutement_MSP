@@ -5,7 +5,7 @@ import config
 from config import order_stages, count_of_separated_stages, count_of_single_stages, table_alphabet
 from notion.notion_parser_recruitment import \
     NotionParserRecruitment
-from subjects_distribution import get_subj_distribution, write_subj_distribution
+from subjects_distribution import get_subj_distribution
 from table_scaner import Table
 from stages_counter import StagesCounter
 from logger_file import logger
@@ -19,7 +19,7 @@ def get_sheets_to_write_generator(row_content: list):
     for column_letter, date in rows_to_content.items():
         if date \
                 and "TOTAL" not in date \
-                and table_date_to_datetime_converter(date):
+                and _table_date_to_datetime_converter(date):
             yield get_next_alph_letter(column_letter), date
 
 
@@ -42,7 +42,7 @@ def visualize_loading(func):
 
 @visualize_loading
 def count_and_write_info_to_column(info, column_letter, table: Table):
-    start_date, end_date = table_date_to_datetime_converter(info)
+    start_date, end_date = _table_date_to_datetime_converter(info)
     logger.info(f"[date] {str(start_date)[:10]} - {str(end_date)[:10]}")
 
     data = get_period_info_from_notion(start_date, end_date)
@@ -55,7 +55,7 @@ def count_and_write_info_to_column(info, column_letter, table: Table):
     table.write(cell_range, data)
 
 
-def table_date_to_datetime_converter(date: str) -> any((tuple, None)):
+def _table_date_to_datetime_converter(date: str) -> any((tuple, None)):
     """
     Parse table string date (ex: "12.03-19.03.22") to two datetime variables
 

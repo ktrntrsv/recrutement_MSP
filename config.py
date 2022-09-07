@@ -14,6 +14,8 @@ loading_with_eyes_table_string_number = "23"
 
 spb_flag = False
 
+from logger_file import logger
+
 
 # todo подумать, куда можно закинуть эти две отщепенистые функции, почему они вообще в конфиге, аххаха
 
@@ -30,9 +32,6 @@ def get_spb_flag(arguments: list) -> None:
 
         spb_flag = True
         data_sheets_list_name = data_sheets_list_name_spb
-
-
-from logger_file import logger
 
 
 def get_letters_for_column_names() -> list:

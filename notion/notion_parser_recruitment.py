@@ -26,14 +26,16 @@ class NotionParserRecruitment(NotionParser):
             }
             },
             {
-                "property": "ГС: дата приглашения ₓ", "rollup": {
-                "any": {
-                    "date": {
-                        "on_or_before": str(self.end_day + timedelta(days=1))}
+                "property": "ГС: дата приглашения ₓ",
+                "rollup": {
+                    "any": {
+                        "date": {
+                            "on_or_before": str(self.end_day + timedelta(days=1))}
+                    }
                 }
-            }
             },
         ]
+        print(self.body)
 
         if config.spb_flag:
             self.apply_filter_by_spb()
@@ -114,4 +116,3 @@ class NotionParserRecruitment(NotionParser):
             if prep["ГС: дата прихода ₓ"] and \
                     prep["ГС: дата прихода ₓ"] != prep["ГС: дата приглашения ₓ"]:
                 prep["ГС: дата прихода ₓ"] = []
-
