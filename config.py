@@ -46,6 +46,13 @@ def get_letters_for_column_names() -> list:
     return s
 
 
+departments = {"mshp": None,
+               "msk": ("Профсоюзная", "Проспект Мира", "ВШЭ", "Яндекс", "Физтехпарк"),
+               "spb": ("Санкт-Петербург", "Новочеркасская", "Приморский"),
+               "mytishchi": ("Мытищи",),
+               "vk": ("Дистанционно",)
+               }
+
 table_alphabet = get_letters_for_column_names()
 
 count_of_single_stages = 10
@@ -77,6 +84,7 @@ order_stages = (
 field_names = {
     "fio": "ФИО",
     "subjects": "ГС: Может вести ₓ",
+    "departments": "Отделения ₓ",
 
     "gs_invitation_date": "ГС: дата приглашения ₓ",
     "gs_date_of_attendance": "ГС: дата прихода ₓ",

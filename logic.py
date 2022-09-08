@@ -5,7 +5,7 @@ import config
 from config import order_stages, count_of_separated_stages, count_of_single_stages, table_alphabet
 from notion.notion_parser_recruitment import \
     NotionParserRecruitment
-from subjects_distribution import get_subj_distribution
+from subjects_distribution import SubjCounter
 from table_scaner import Table
 from stages_counter import StagesCounter
 from logger_file import logger
@@ -24,7 +24,6 @@ def get_sheets_to_write_generator(row_content: list):
 
 
 def get_next_alph_letter(letter):
-    global cut_table_alphabet
     return cut_table_alphabet[cut_table_alphabet.index(letter) + 1]
 
 
@@ -46,13 +45,20 @@ def count_and_write_info_to_column(info, column_letter, table: Table):
     logger.info(f"[date] {str(start_date)[:10]} - {str(end_date)[:10]}")
 
     data = get_period_info_from_notion(start_date, end_date)
-    get_subj_distribution(data)
+    get_distribution_for_all_departments(data)
+
     counted_single_stages, counted_separated_stages, self_denial = StagesCounter(data).count_for_all()
 
     data = glue_single_separated_self_denial_numbers(counted_single_stages, counted_separated_stages, self_denial)
 
     cell_range = f"{column_letter}5:{get_next_alph_letter(column_letter)}{5 + len(order_stages)}"
     table.write(cell_range, data)
+
+
+def get_distribution_for_all_departments(data):
+    for city in config.departments.keys():
+        department = config.departments[city]
+        SubjCounter().get_subj_distribution(data, department, city)
 
 
 def _table_date_to_datetime_converter(date: str) -> any((tuple, None)):
@@ -161,7 +167,6 @@ def add_table_loading_signs(func: Callable) -> Callable:
             logger.error(Exception.args)
             raise Exception
         finally:
-            global cut_table_alphabet
             t.write(
                 f"{cut_table_alphabet[0]}{config.loading_with_eyes_table_string_number}:"
                 f"{cut_table_alphabet[-1]}{config.loading_with_eyes_table_string_number}",

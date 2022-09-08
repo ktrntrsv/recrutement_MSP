@@ -1,118 +1,124 @@
 from table_scaner import Table
 from logger_file import logger
-from collections import Counter
-
-distribution = {"preps": Counter(), "assists": Counter()}
-
-main_subjects = (
-    "Python", "Python (младшие классы)", "C++", "Scratch", "C#", "Компьютерные сети", "Дискретная математика",
-    "ЕГЭ по математике",
-    "ЕГЭ по информатике")
-
-junior_subjects = (
-    "MarkOnline", "Алгоритмика", "Micro:bit", "Математика (младшие классы)", "Базовая компьютерная подготовка",
-    "Scratch")
-middle_subjects = (
-    "Figma", "Python", "Python (младшие классы)", "PyGame", "Основы олимпиадной математики", "Форматы данных")
-senior_subjects = (
-    "C++", "ЕГЭ по информатике", "ЕГЭ по математике", "ОГЭ по информатике", "ОГЭ по математике", "C#",
-    "Компьютерные сети",
-    "Дискретная математика", "Machine Learning")
+from collections import Counter, defaultdict
 
 
-def get_subj_distribution(data):
-    # for prep in data:
-    #     if prep["Э: результат ₓ"]:
-    #         logger.error(prep)
+class SubjCounter:
+    _instance = None
 
-    subjs_of_passed_exam_preps = []
-    subjs_of_passed_exam_assists = []
+    def __new__(cls):  # singleton
+        if not isinstance(cls._instance, cls):
+            cls._instance = object.__new__(cls)
+            cls.__init(cls._instance)
+        return cls._instance
 
-    if not data:
-        return
+    def __init(self):
+        self.distribution = {"mshp": {"preps": Counter(), "assists": Counter()},
+                             "msk": {"preps": Counter(), "assists": Counter()},
+                             "spb": {"preps": Counter(), "assists": Counter()},
+                             "mytishchi": {"preps": Counter(), "assists": Counter()},
+                             "vk": {"preps": Counter(), "assists": Counter()}
+                             }
+        self.main_subjects = (
+            "Python 1 год", "Python 2 год", "C++ 1 год", "C++ 2 год", "C#", "Scratch", "Компьютерные сети",
+            "Дискретная математика",
+            "ЕГЭ по математике", "ЕГЭ по информатике")
 
-    for prep in data:
-        if not prep["Э: результат ₓ"] or \
-                prep["Э: результат ₓ"] == ["Отказ"] or \
-                prep["ШСВ: результат ₓ"] == "Не прошел" or \
-                prep["Статус ₓ"] == "Самоотказ" or \
-                prep["Статус ₓ"] == "Отказ":
-            continue
-        if "+ Преподаватель" in prep["Э: результат ₓ"]:
-            subjs_of_passed_exam_preps.append(prep["ГС: Может вести ₓ"])
-            logger.error(prep["ФИО"])
-        elif "+ Ассистент" in prep["Э: результат ₓ"]:
-            subjs_of_passed_exam_assists.append(prep["ГС: Может вести ₓ"])
-            logger.error(prep["ФИО"], prep["ГС: Может вести ₓ"])
+        self.junior_subjects = (
+            "MarkOnline", "Алгоритмика", "Micro:bit", "Математика (младшие классы)",
+            "Базовая компьютерная подготовка",
+            "Scratch")
+        self.middle_subjects = (
+            "Figma", "Python 1 год", "Python 2 год", "PyGame", "Основы олимпиадной математики",
+            "Форматы данных")
+        self.senior_subjects = (
+            "C++ 1 год", "C++ 2 год", "ЕГЭ по информатике", "ЕГЭ по математике", "ОГЭ по информатике",
+            "ОГЭ по математике", "C#",
+            "Компьютерные сети",
+            "Дискретная математика", "Machine Learning")
 
-    count_subjects(subjs_of_passed_exam_preps, subjs_of_passed_exam_assists)
-    count_grades(subjs_of_passed_exam_preps, subjs_of_passed_exam_assists)
+    def get_subj_distribution(self, data, departments: str, city: str):
+        subjs_preps = []
+        subjs_assists = []
 
+        if not data:
+            return
 
-def count_subjects(preps_subj, assists_subj):
-    global distribution
-
-    for subj in main_subjects:
-        for prep in preps_subj:
-            if prep and subj in prep:
-                distribution["preps"][subj] += 1
-        for assist in assists_subj:
-            if assist and subj in assist:
-                distribution["assists"][subj] += 1
-
-    for i in "preps", "assists":
-        distribution[i]["Python"] += distribution[i]["Python (младшие классы)"]
-        distribution[i]["Python (младшие классы)"] = 0
-
-
-def count_grades(preps_subj, assists_subj):
-    count("preps", preps_subj)
-    count("assists", assists_subj)
-
-
-def count(job_title: str, subjects):
-    global distribution
-    for prep in subjects:
-        if not prep:
-            continue
-
-        current_jun, current_mid, current_sen, current_spec = (None,) * 4
-
-        for s in prep:
-            if prep != current_jun and s in junior_subjects:
-                distribution[job_title]["junior"] += 1
-                logger.error(f"{prep} -- jun")
-                current_jun = prep
+        for prep in data:
+            if not prep["ГС: Может вести ₓ"]:
                 continue
-            elif prep != current_mid and s in middle_subjects:
-                distribution[job_title]["middle"] += 1
-                logger.error(f"{prep} -- middle")
-                current_mid = prep
+            if departments and prep["Отделения ₓ"] and (not set(prep["Отделения ₓ"]) & set(departments)):
                 continue
-            elif prep != current_sen and s in senior_subjects:
-                distribution[job_title]["senior"] += 1
-                logger.error(f"{prep} -- senior")
-                current_sen = prep
+            # logger.info(prep["ГС: Может вести ₓ"])
+            if not prep["Э: результат ₓ"] or \
+                    prep["Э: результат ₓ"] == ["Отказ"] or \
+                    prep["ШСВ: результат ₓ"] == "Не прошел" or \
+                    prep["Статус ₓ"] == "Самоотказ" or \
+                    prep["Статус ₓ"] == "Отказ":
                 continue
-            elif prep != current_spec:
-                distribution[job_title]["spec_courses"] += 1
-                current_spec = prep
-                logger.error(f"{prep} -- spec course")
+            if "+ Преподаватель" in prep["Э: результат ₓ"] or "+ Тьютор" in prep["Э: результат ₓ"]:
+                subjs_preps.append(prep["ГС: Может вести ₓ"])
+            elif "+ Ассистент" in prep["Э: результат ₓ"]:
+                subjs_assists.append(prep["ГС: Может вести ₓ"])
 
+        self.count_subjects(subjs_preps, subjs_assists, city)
+        self.count_grades(subjs_preps, subjs_assists, city)
 
-def write_subj_distribution(table: Table):
-    result = []
+    def count_subjects(self, subjs_preps, subjs_assists, city):
 
-    for grade in "junior", "middle", "senior":
-        result.append([distribution["preps"][grade],
-                       distribution["assists"][grade]])
+        for subj in self.main_subjects:
+            for subj_prep in subjs_preps:
+                if subj_prep and subj in subj_prep:
+                    self.distribution[city]["preps"][subj] += 1
+                    logger.info(f"[added subj] {city} - {subj} - {subj_prep}")
+            for subj_assist in subjs_assists:
+                if subj_assist and subj in subj_assist:
+                    self.distribution[city]["assists"][subj] += 1
+                    logger.info(f"[added subj] {city} - {subj} - {subj_assist}")
 
-    subjs = ("Python", "C++", "C#", "Scratch", "Компьютерные сети", "Дискретная математика", "ЕГЭ по математике",
-             "ЕГЭ по информатике", "spec_courses")
-    for subj in subjs:
-        result.append([distribution["preps"][subj],
-                       distribution["assists"][subj]])
-    logger.exception(result)
-    logger.exception(distribution)
+    def count_grades(self, subjs_preps, subjs_assists, city):
+        self.count("preps", subjs_preps, city)
+        self.count("assists", subjs_assists, city)
 
-    table.write("DM5:DN16", result)
+    def count(self, job_title: str, subjects, city):
+        for prep in subjects:
+            if not prep:
+                continue
+
+            current_jun, current_mid, current_sen, current_spec = (None,) * 4
+            for s in prep:
+                if prep != current_jun and s in self.junior_subjects:
+                    self.distribution[city][job_title]["junior"] += 1
+                    current_jun = prep
+                    continue
+                elif prep != current_mid and s in self.middle_subjects:
+                    self.distribution[city][job_title]["middle"] += 1
+                    current_mid = prep
+                    continue
+                elif prep != current_sen and s in self.senior_subjects:
+                    self.distribution[city][job_title]["senior"] += 1
+                    current_sen = prep
+                    continue
+                elif prep != current_spec:
+                    self.distribution[city][job_title]["spec_courses"] += 1
+                    current_spec = prep
+
+    def write_subj_distribution(self, table: Table):
+
+        subjs = (
+            "Python 1 год", "Python 2 год", "C++ 1 год", "C++ 2 год", "C#", "Scratch", "Компьютерные сети",
+            "Дискретная математика", "ЕГЭ по математике",
+            "ЕГЭ по информатике", "spec_courses")
+
+        logger.info(self.distribution)
+
+        sorted_sections = defaultdict(list)
+        for section in ("junior", "middle", "senior") + subjs:
+            for city in self.distribution.keys():
+                for title in "preps", "assists":
+                    sorted_sections[section].append(self.distribution[city][title][section])
+
+        logger.info(f"{sorted_sections=}")
+
+        sorted_sections = list(sorted_sections.values())
+        table.write("DM5:DV18", sorted_sections)

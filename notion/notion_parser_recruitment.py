@@ -35,7 +35,6 @@ class NotionParserRecruitment(NotionParser):
                 }
             },
         ]
-        print(self.body)
 
         if config.spb_flag:
             self.apply_filter_by_spb()
