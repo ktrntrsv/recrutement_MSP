@@ -1,14 +1,15 @@
-from typing import Callable, List
-from datetime import datetime, timedelta
-
 import config
 from config import order_stages, count_of_separated_stages, count_of_single_stages, table_alphabet
+from typing import Callable
+from datetime import datetime, timedelta
 from notion.notion_parser_recruitment import \
     NotionParserRecruitment
 from subjects_distribution import SubjCounter
 from table_scaner import Table
 from stages_counter import StagesCounter
 from logger_file import logger
+from functools import wraps
+
 
 
 def get_sheets_to_write_generator(row_content: list):
@@ -27,7 +28,8 @@ def get_next_alph_letter(letter):
     return cut_table_alphabet[cut_table_alphabet.index(letter) + 1]
 
 
-def visualize_loading(func):
+def visualize_loading(func: Callable):
+    @wraps(func)
     def wrapped(info, column_letter, table):
         loading_cell = column_letter + config.loading_with_eyes_table_string_number
         table.write(loading_cell, [["👀"]])
@@ -148,9 +150,10 @@ def append_doubled_stages(final_numbers, counted_separated_stages):
                               counted_separated_stages[ass_stage]])
 
 
-def add_table_loading_signs(func: Callable) -> Callable:
+def add_table_loading_signs(func: Callable, list_name) -> Callable:
+    @wraps(func)
     def wrapper() -> None:
-        t = Table()
+        t = Table(list_name)
 
         warning_cell = "A24:A25"
 
@@ -167,6 +170,7 @@ def add_table_loading_signs(func: Callable) -> Callable:
             logger.error(Exception.args)
             raise Exception
         finally:
+            global cut_table_alphabet
             t.write(
                 f"{cut_table_alphabet[0]}{config.loading_with_eyes_table_string_number}:"
                 f"{cut_table_alphabet[-1]}{config.loading_with_eyes_table_string_number}",

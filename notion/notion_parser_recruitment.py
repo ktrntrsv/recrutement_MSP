@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
 import config
+import list_name
 from logger_file import logger
 from notion.notion_parser import NotionParser
 import notion.bool_converter as bool_converter
@@ -36,7 +37,7 @@ class NotionParserRecruitment(NotionParser):
             },
         ]
 
-        if config.spb_flag:
+        if list_name.is_spb_flag():
             self.apply_filter_by_spb()
 
     def apply_filter_by_spb(self) -> None:

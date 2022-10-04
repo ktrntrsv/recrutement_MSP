@@ -1,8 +1,8 @@
+import list_name
+
 from loguru import logger
 
-import config
-
-if config.spb_flag:
+if list_name.is_spb_flag():
     logger.add('logs_spb.log', encoding="utf8", rotation='15 MB', compression='zip', level="DEBUG")
     logger.add('logs_spb.log', encoding="utf8", rotation='15 MB', compression='zip', level="INFO")
 else:

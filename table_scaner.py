@@ -1,4 +1,5 @@
 import os.path
+import time
 from sys import exit
 from datetime import datetime, timedelta
 
@@ -15,12 +16,12 @@ from loguru import logger
 
 class Table:
 
-    def __init__(self):
+    def __init__(self, list_name):
         self.SCOPE = ["https://www.googleapis.com/auth/spreadsheets"]
         self.SPREADSHEET_ID = "1zEL9X-8R4IZ04OKdXxcA5CaTr5w4BeyyLbBDbBPKW6A"
         self.credentials = self._get_credentials()
         self.service = build("sheets", "v4", credentials=self.credentials)
-        self.list_name = config.data_sheets_list_name
+        self.list_name = list_name
 
     @staticmethod
     def save_credentials(creds):
@@ -98,4 +99,8 @@ class Table:
             self.service.spreadsheets().values().batchUpdate(
                 spreadsheetId=self.SPREADSHEET_ID, body=body).execute()
         except HttpError as err:
+            if err.status_code == 429:
+                logger.warning("Waiting for 60 secs")
+                time.sleep(60)
+                self.write(range_sheets, values)
             logger.error(err)

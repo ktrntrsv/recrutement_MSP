@@ -5,33 +5,9 @@ from dotenv import load_dotenv
 load_dotenv()
 NOTION_BOT_TOKEN = os.getenv('NOTION_BOT_TOKEN')
 
-# data_sheets_list_name = "Разработка!"
-data_sheets_list_name = "Вся школа!"
-data_sheets_list_name_spb = "Питер!"
 responsible = "Тарасовой Катерине."  # в дательном падеже
 CANDIDATES_DB_ID = "88db000781d54a7abadeda91722489db"
 loading_with_eyes_table_string_number = "23"
-
-spb_flag = False
-
-from logger_file import logger
-
-
-# todo подумать, куда можно закинуть эти две отщепенистые функции, почему они вообще в конфиге, аххаха
-
-def get_spb_flag(arguments: list) -> None:
-    global spb_flag
-    global data_sheets_list_name
-    if not len(arguments) >= 2:
-        logger.info("Spb_flag = False")
-
-        spb_flag = False
-        return
-    if arguments[1] == "--spb":
-        logger.info("Spb_flag = True")
-
-        spb_flag = True
-        data_sheets_list_name = data_sheets_list_name_spb
 
 
 def get_letters_for_column_names() -> list:

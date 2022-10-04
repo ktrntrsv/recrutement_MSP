@@ -121,4 +121,4 @@ class SubjCounter:
         logger.info(f"{sorted_sections=}")
 
         sorted_sections = list(sorted_sections.values())
-        table.write("DM5:DV18", sorted_sections)
+        table.write("DS5:EB18", sorted_sections)
