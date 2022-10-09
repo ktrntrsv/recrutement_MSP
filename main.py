@@ -1,3 +1,5 @@
+import counters
+from process_visualisation import add_table_loading_signs
 import logic
 from table_scaner import Table
 from subjects_distribution import SubjCounter
@@ -10,7 +12,7 @@ from logger_file import logger
 def update_list(table: Table) -> None:
     row_with_dates = table.read([f"O2:ZZZ2"])[0]["values"][0]
     for column_letter, date in logic.get_sheets_to_write_generator(row_with_dates):
-        logic.count_and_write_info_to_column(date, column_letter, table)
+        counters.count_and_write_info_to_column(date, column_letter, table)
     SubjCounter().write_subj_distribution(table)
 
 
@@ -22,7 +24,7 @@ if __name__ == '__main__':
     for _ in range(repeats):
         list_name = get_list_name(prev_sem=check_prev_sem)
         logger.info(f"Updating list {list_name}")
-        loading_decorator = partial(logic.add_table_loading_signs, list_name=list_name)
+        loading_decorator = partial(add_table_loading_signs, list_name=list_name)
         update_list_wrapped = loading_decorator(update_list)
         update_list_wrapped()
         check_prev_sem = not check_prev_sem
