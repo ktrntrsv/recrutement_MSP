@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 NOTION_BOT_TOKEN = os.getenv('NOTION_BOT_TOKEN')
 
-responsible = "Тарасовой Катерине."  # в дательном падеже
+responsible = "Бондаревой Даше."  # в дательном падеже
 CANDIDATES_DB_ID = "88db000781d54a7abadeda91722489db"
 loading_with_eyes_table_string_number = "23"
 
