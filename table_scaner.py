@@ -81,12 +81,12 @@ class Table:
         logger.info(err)
 
     def write(self, range_sheets: str, values: list) -> None:
-        range_sheets = self.list_name + range_sheets
+        list_and_sheet_name = self.list_name + range_sheets
         if not values:
             values = []
 
         data = [{
-            'range': range_sheets,
+            'range': list_and_sheet_name,
             'values': values
         }]
 
